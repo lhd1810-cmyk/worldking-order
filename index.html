@@ -478,12 +478,8 @@ function saveOrder(type) {
     supplies:isFood?{}:items,
     memo,staff
   };
-  fetch(SHEET_URL,{method:'POST',body:JSON.stringify({type:'save_order',order})})
-    .then(r=>r.json())
-    .then(data=>{
-      if(data.status==='ok'){msgEl.textContent='✓ 저장됨';msgEl.style.color='var(--green)';}
-      else{msgEl.textContent='저장 실패';msgEl.style.color='var(--red)';}
-    })
+  fetch(SHEET_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'save_order',order})})
+    .then(()=>{msgEl.textContent='✓ 저장됨';msgEl.style.color='var(--green)';})
     .catch(()=>{msgEl.textContent='저장 실패. 인터넷 확인';msgEl.style.color='var(--red)';})
     .finally(()=>{btn.disabled=false;btn.textContent='구글 시트에 저장';setTimeout(()=>msgEl.textContent='',3000);});
 }
