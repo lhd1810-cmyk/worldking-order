@@ -43,6 +43,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .qty-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .qty-select{font-size:15px;font-weight:700;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-bg);color:var(--text);-webkit-appearance:none;cursor:pointer;min-width:64px;text-align:center;}
 .qty-select.has-qty{background:var(--primary-light);color:var(--primary);border-color:var(--primary-mid);}
+.unit-select{font-size:12px;padding:7px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-bg);color:var(--muted);-webkit-appearance:none;cursor:pointer;min-width:52px;text-align:center;}
 .qty-unit{font-size:12px;color:var(--muted);min-width:20px;}
 .field{display:flex;flex-direction:column;gap:4px;}
 .field label{font-size:12px;color:var(--muted);font-weight:500;}
@@ -216,6 +217,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <script>
 const SHEET_URL='https://script.google.com/macros/s/AKfycbw4aIsNb93bsjYdiRyKbyvAn_EIsR09jVDOIMh930nFyf0K1DQkDYQMcbk-J6J9yyQt5A/exec';
+const MAX_QTY=30;
+const UNIT_OPTIONS=['개','박스','통','봉','봉지'];
 
 const FOOD_DATA = {
   '과자류': [
@@ -223,9 +226,9 @@ const FOOD_DATA = {
     {name:'홈런볼',unit:'박스',def:1},{name:'오감자',unit:'박스',def:1},
     {name:'빼빼로 아몬드',unit:'박스',def:1},{name:'빼빼로 오리지널',unit:'박스',def:1},
     {name:'뽀로로와 친구들 플레인',unit:'박스',def:1},{name:'뽀로로와 친구들 치즈',unit:'박스',def:1},
-    {name:'꽃게랑',unit:'박스',def:1},{name:'자갈치',unit:'박스',def:1},
+    {name:'바나나킥',unit:'박스',def:1},{name:'포스틱',unit:'박스',def:1},
     {name:'새우깡 오리지널',unit:'박스',def:1},{name:'벌집피자',unit:'박스',def:1},
-    {name:'꼬북칩',unit:'박스',def:1},{name:'오징어집',unit:'박스',def:1},
+    {name:'콘칩',unit:'박스',def:1},{name:'오징어집',unit:'박스',def:1},
     {name:'스윙칩',unit:'박스',def:1},{name:'양파링',unit:'박스',def:2},
     {name:'알새우칩',unit:'박스',def:1},{name:'허니버터칩',unit:'박스',def:1},
     {name:'꿀꽈배기',unit:'박스',def:1},{name:'고래밥',unit:'박스',def:1},
@@ -249,7 +252,8 @@ const FOOD_DATA = {
     {name:'CJ미역국밥 컵밥',unit:'박스',def:1},{name:'오뚜기 카레컵밥',unit:'박스',def:1},
     {name:'햇반 작은공기 36개입',unit:'박스',def:1},{name:'롯데 키스틱 치즈 600g',unit:'박스',def:2},
     {name:'뽀로로 크림 떡볶이 115g',unit:'박스',def:2},{name:'뽀로로 짜장 떡볶이 115g',unit:'박스',def:1},
-    {name:'햇반 스팸김치볶음밥 220g',unit:'박스',def:1},{name:'사조 오양 고기포자만두 180g',unit:'개',def:30},
+    {name:'햇반 스팸김치볶음밥 220g',unit:'박스',def:1},
+    {name:'사조 오양 고기포자만두 180g (30개입)',unit:'박스',def:1},
     {name:'한맥 포켓치킨 데리야끼맛 180g',unit:'봉',def:10},{name:'오뚜기 불고기 사각피자 99g',unit:'개',def:30},
     {name:'한맥 포켓치킨 양념치킨맛 180g',unit:'봉',def:10},{name:'쿠즈락 소떡소떡 매콤한맛 180g',unit:'박스',def:1},
     {name:'풀무원 올바른 핫도그 300g',unit:'봉',def:10},{name:'오양 불고기맛 후랑크',unit:'박스',def:1},
@@ -269,18 +273,19 @@ const FOOD_DATA = {
     {name:'허쉬 190ml',unit:'박스',def:1},{name:'베스킨라빈스 쿠키앤크림 190ml',unit:'박스',def:1},
     {name:'베스킨라빈스 스트로베리 190ml',unit:'박스',def:2},{name:'펩시제로콜라 355ml',unit:'박스',def:1},
     {name:'웰치스 딸기 355ml',unit:'박스',def:1},{name:'사이다 355ml',unit:'박스',def:2},
-    {name:'립톤 제로 500ml',unit:'박스',def:4},{name:'에비앙 생수 500ml',unit:'박스',def:1},
+    {name:'립톤 제로 500ml (6개입 x 4)',unit:'박스',def:4},{name:'에비앙 생수 500ml',unit:'박스',def:1},
     {name:'스타벅스 바닐라',unit:'박스',def:10},{name:'스타벅스 카페라떼',unit:'박스',def:12},
     {name:'파이크 플레이스 로스트 블랙커피',unit:'박스',def:2},
     {name:'스타벅스 카라멜라떼 300ml 24개입',unit:'박스',def:1},
     {name:'스타벅스 시그니처 밀크티 325ml 24개입',unit:'박스',def:1},
     {name:'더단백 초코 250ml 18개입',unit:'박스',def:1},{name:'제티 175ml 30개입',unit:'박스',def:1},
+    {name:'핫식스 더킹',unit:'박스',def:1},
   ],
   '젤리류': [
     {name:'해태 화이트엔젤 큐티 27g',unit:'박스',def:3},{name:'베베토 베어 980g',unit:'박스',def:2},
     {name:'미니 멘토스 푸르티 1700g',unit:'박스',def:2},
     {name:'스키틀즈 오리지날 샤워 믹스드 펀사이즈',unit:'봉',def:1},
-    {name:'트롤리 미니버거 모양젤리 900g',unit:'박스',def:2},
+    {name:'트롤리 미니버거 모양젤리 900g',unit:'통',def:2},
     {name:'유미 구미 빅 프랭크젤리 핫도그모양 28g 24개',unit:'개',def:1},
     {name:'앰 앤 앰즈 밀크초코 945g',unit:'봉',def:1},
     {name:'마이쮸 사과+포도 720g',unit:'봉',def:3},{name:'마이쮸 딸기+복숭아 720g',unit:'봉',def:3},
@@ -293,12 +298,15 @@ const FOOD_DATA = {
   '기타': [
     {name:'MEDIA SET DS620 (6*8)inch',unit:'박스',def:1},
     {name:'서울 우유 체다슬라이스 치즈 100매 1.8kg',unit:'개',def:1},
-    {name:'하나단무지 50g 120개',unit:'개',def:1},{name:'맛미 미니간장',unit:'봉',def:1},
+    {name:'하나단무지 50g 120개',unit:'개',def:1},
+    {name:'하나단무지 50g 50개입',unit:'개',def:1},
+    {name:'맛미 미니간장',unit:'봉',def:1},
     {name:'오뚜기 일회용 토마토케챂 9g 1000개입',unit:'박스',def:1},
     {name:'스타벅스 브랙퍼스트 블랜드 홀빈 1.13kg',unit:'봉지',def:20},
   ],
 };
 
+// 비품/개별 - 단순 품목도 단위 드롭다운 변경 가능
 const SUPPLY_DATA = {
   'selfbar': ['종이컵','스트로우','커피 컵 홀더','물티슈','휴지','스포크','젓가락','세모금 종이컵','아이스컵','아이스컵 뚜껑','핫 종이컵','핫 종이컵 뚜껑','얇은 스트로우','쓰레기 비닐봉투','검정봉투','라면 종이용기','슈가 시럽','커피원두'],
   'clean': ['제균티슈','페브리즈','화장실 휴지','손 소독제','매직 스펀지','부직포','수세미','락스','화장실청소용 액체','아이 깨끗해','주방세제','빨래비누','유리 세정제'],
@@ -309,8 +317,9 @@ const SUPPLY_DATA = {
     {name:'샛별뜨락 갓구워낸 구운계란 2구',unit:'개',def:36},
     {name:'베리베리향 젤리',unit:'박스',def:2},{name:'하츄핑 별가루젤리',unit:'박스',def:4},
     {name:'삼립약과',unit:'박스',def:1},{name:'아이셔&아이셔츄 5종혼합 100개입',unit:'봉지',def:2},
-    {name:'땅콩카라멜 100개',unit:'봉지',def:2},{name:'오쿨 폴로캔디 760개입',unit:'봉지',def:1},
-    {name:'밀크볼 소프트 카라멜 380g',unit:'봉지',def:1},{name:'이클립스',unit:'개',def:1},
+    {name:'땅콩카라멜 100개',unit:'봉지',def:2},
+    {name:'노슈가 민트캔디 믹스',unit:'봉지',def:1},
+    {name:'이클립스',unit:'개',def:1},
     {name:'핫식스 더킹',unit:'박스',def:1},
   ],
 };
@@ -319,42 +328,54 @@ let foodQty = {};
 let supplyQty = {};
 
 function makeQtySelect(id, qty, onchange) {
-  const opts = Array.from({length:11},(_,i)=>`<option value="${i}"${i===qty?' selected':''}>${i}</option>`).join('');
+  const opts = Array.from({length:MAX_QTY+1},(_,i)=>`<option value="${i}"${i===qty?' selected':''}>${i}</option>`).join('');
   return `<select class="qty-select${qty>0?' has-qty':''}" id="${id}" onchange="${onchange}">${opts}</select>`;
+}
+
+function makeUnitSelect(id, currentUnit, onchange) {
+  const opts = UNIT_OPTIONS.map(u=>`<option value="${u}"${u===currentUnit?' selected':''}>${u}</option>`).join('');
+  return `<select class="unit-select" id="${id}" onchange="${onchange}">${opts}</select>`;
 }
 
 function makeFoodRow(item, cat) {
   const id=`f_${cat}_${item.name}`;
-  const qty=foodQty[`${cat}__${item.name}`]||0;
+  const qty=foodQty[`${cat}__${item.name}`]?.qty||0;
   return `<div class="item-row">
     <div><div class="item-name">${item.name}</div><div class="item-default">기본: ${item.def}${item.unit}</div></div>
     <div class="qty-wrap">
-      ${makeQtySelect(id, qty, `onFoodQty('${cat}','${item.name}','${item.unit}',this)`)}
+      ${makeQtySelect(id, qty, `onFoodQty('${cat}','${item.name.replace(/'/g,"\\'")}','${item.unit}',this)`)}
       <span class="qty-unit">${item.unit}</span>
     </div>
   </div>`;
 }
 
+// 비품 단순 품목 - 기본단위 '개' + 단위 드롭다운
 function makeSupplySimpleRow(name, key) {
   const id=`s_${key}_${name}`;
-  const qty=supplyQty[name]||0;
+  const unitId=`u_${key}_${name}`;
+  const saved=supplyQty[name];
+  const qty=saved?.qty||0;
+  const unit=saved?.unit||'개';
   return `<div class="item-row">
     <div class="item-name">${name}</div>
     <div class="qty-wrap">
-      ${makeQtySelect(id, qty, `onSupplyQty('${name}',this)`)}
-      <span class="qty-unit">개</span>
+      ${makeQtySelect(id, qty, `onSupplyQty('${name.replace(/'/g,"\\'")}',this,'${unitId}')`)}
+      ${makeUnitSelect(unitId, unit, `onSupplyUnit('${name.replace(/'/g,"\\'")}',this,'${id}')`)}
     </div>
   </div>`;
 }
 
 function makeSupplyItemRow(item) {
   const id=`s_ind_${item.name}`;
-  const qty=supplyQty[item.name]||0;
+  const unitId=`u_ind_${item.name}`;
+  const saved=supplyQty[item.name];
+  const qty=saved?.qty||0;
+  const unit=saved?.unit||item.unit;
   return `<div class="item-row">
     <div><div class="item-name">${item.name}</div><div class="item-default">기본: ${item.def}${item.unit}</div></div>
     <div class="qty-wrap">
-      ${makeQtySelect(id, qty, `onSupplyQty('${item.name}',this,'${item.unit}')`)}
-      <span class="qty-unit">${item.unit}</span>
+      ${makeQtySelect(id, qty, `onSupplyQty('${item.name.replace(/'/g,"\\'")}',this,'${unitId}')`)}
+      ${makeUnitSelect(unitId, unit, `onSupplyUnit('${item.name.replace(/'/g,"\\'")}',this,'${id}')`)}
     </div>
   </div>`;
 }
@@ -379,11 +400,21 @@ function onFoodQty(cat, name, unit, sel) {
   updateFoodSummary();updateFoodMsg();
 }
 
-function onSupplyQty(name, sel, unit='개') {
+function onSupplyQty(name, sel, unitId) {
   const qty=parseInt(sel.value);
+  const unitEl=document.getElementById(unitId);
+  const unit=unitEl?unitEl.value:'개';
   if(qty>0){supplyQty[name]={qty,unit};sel.classList.add('has-qty');}
   else{delete supplyQty[name];sel.classList.remove('has-qty');}
   updateSupplySummary();updateSupplyMsg();
+}
+
+function onSupplyUnit(name, sel, qtyId) {
+  const unit=sel.value;
+  if(supplyQty[name]){
+    supplyQty[name].unit=unit;
+    updateSupplySummary();updateSupplyMsg();
+  }
 }
 
 function updateFoodSummary() {
@@ -446,7 +477,7 @@ function resetFood() {
 function resetSupply() {
   if(!confirm('비품/개별 수량을 전체 초기화할까요?'))return;
   supplyQty={};
-  document.querySelectorAll('[id^="s_"]').forEach(el=>{el.value='0';el.classList.remove('has-qty');});
+  document.querySelectorAll('.qty-select[id^="s_"]').forEach(el=>{el.value='0';el.classList.remove('has-qty');});
   updateSupplySummary();updateSupplyMsg();
 }
 
@@ -529,7 +560,6 @@ function switchTab(t) {
   window.scrollTo(0,0);
 }
 
-// input 이벤트 바인딩
 document.getElementById('f-memo').addEventListener('input',updateFoodMsg);
 document.getElementById('s-memo').addEventListener('input',updateSupplyMsg);
 document.getElementById('f-staff').addEventListener('input',updateFoodMsg);
